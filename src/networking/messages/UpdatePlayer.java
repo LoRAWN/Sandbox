@@ -50,7 +50,7 @@ public class UpdatePlayer extends AbstrMsg {
     
     @Override
     public String toString() {
-        return "[rotation="+rot.toString()+",location="+loc.toString()+"]";
+        return "[id="+id+",rotation="+rot.toString()+",location="+loc.toString()+"]";
     }
     
 }

@@ -1,6 +1,5 @@
 package application.client;
 
-import entity.player.Player;
 import application.Animation;
 import application.Configuration;
 import com.jme3.animation.AnimChannel;
@@ -11,15 +10,17 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.shadow.BasicShadowRenderer;
-import factories.EnvironmentFactory;
-import factories.PlayerFactory;
+import entity.player.Player;
+import factory.EntityFactory;
+import factory.MapFactory;
+import factory.PlayerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import listeners.AnimListener;
-import map.MyMap;
+import listener.AnimListener;
 import networking.Visitor;
 import networking.messages.*;
 
@@ -39,12 +40,14 @@ public class GameClient extends AbstractClientApp implements Visitor {
         g.start();
     }
     
-    private Player player;
-    private EnvironmentFactory ef;
+    private MapFactory mf;
+    private EntityFactory ef;
     private PlayerFactory pf;
+    private String mapPath = "Scenes/sandbox01.j3o";
     
+    private Player player;
     private Map<Integer,Node> players;
-    
+
     public GameClient(Configuration conf) {
         super(conf);
         players = new HashMap<Integer,Node>();
@@ -57,18 +60,20 @@ public class GameClient extends AbstractClientApp implements Visitor {
 
     @Override
     protected void doInit() {
-        //
         DirectionalLight dl = new DirectionalLight();
         dl.setDirection(new Vector3f(-0.1f, -1f, -1).normalizeLocal());
         root.addLight(dl);
         //
         setPauseOnLostFocus(false);
-        // load map environment
-        ef = new EnvironmentFactory(assetManager,getPhysicsSpace());
-        ef.attachMapTo(root, MyMap.class.getName());
+        // load map
+        mf = new MapFactory(assetManager,getPhysicsSpace());
+	Spatial map = mf.getMap(mapPath);
+        root.attachChild(map);
         // load player
         pf = new PlayerFactory(configuration, inputManager, assetManager, getPhysicsSpace(), cam);
         player = pf.producePlayer(gui);
+	//
+	ef = new EntityFactory(assetManager);
         // set shadowing to on
         root.setShadowMode(RenderQueue.ShadowMode.Cast);
         BasicShadowRenderer bsr = new BasicShadowRenderer(assetManager, 256);
@@ -116,7 +121,8 @@ public class GameClient extends AbstractClientApp implements Visitor {
 
     public void visit(RemovePlayer m) {
         players.remove(m.getId());
-        root.detachChildNamed(""+m.getId());//TODO implement
+        root.detachChildNamed(""+m.getId());
+	//TODO implement
     }
 
     public void visit(PlayerInput m) {
@@ -125,10 +131,9 @@ public class GameClient extends AbstractClientApp implements Visitor {
 
     public void visit(UpdatePlayer m) {
         if(m.getId()==player.getId()) {
-            Vector3f rot = m.getRotation();
-            cam.getRotation().fromAngles(rot.getX(), rot.getY(), rot.getZ());
-            cam.onFrameChange();
+	    //player.setRotation(m.getRotation());
             player.getControl().warp(m.getLocation());
+	    //logger.log(Level.INFO,m.toString());
             return;
         }
         if(!players.containsKey(m.getId())) {

@@ -12,9 +12,9 @@ import com.jme3.scene.control.Control;
 
 public abstract class Entity {
     
-    private int id;
-    private String name;
-    private String modelName;
+    protected int id;
+    protected String name;
+    protected String modelName;
     protected Vector3f location;
     protected Vector3f rotation;
     

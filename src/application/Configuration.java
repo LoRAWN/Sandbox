@@ -30,8 +30,8 @@ public class Configuration {
         settings = new AppSettings(true);
         settings.setTitle(AbstractApp.class.getSimpleName());
         settings.setFrameRate(125);
-        settings.setHeight(720/2);
-        settings.setWidth(1280/2);
+        settings.setHeight(720);
+        settings.setWidth(1280);
         // keys that send keypressed events
         actMapping = new HashMap<String, Trigger>();
         actMapping.put(InputBitArray.ESC_KEY, new KeyTrigger(KeyInput.KEY_ESCAPE));

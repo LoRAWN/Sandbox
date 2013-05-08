@@ -1,6 +1,8 @@
 package application;
 
 import com.jme3.app.Application;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.PhysicsSpace;
 import com.jme3.scene.Node;
 import com.jme3.system.JmeContext.Type;
 
@@ -15,7 +17,7 @@ public abstract class AbstractApp extends Application {
     
     protected Node root;
     protected Node gui;
-    
+    protected BulletAppState bulletAppState;
     protected Configuration configuration;
     
     public AbstractApp(Configuration c) {
@@ -38,6 +40,10 @@ public abstract class AbstractApp extends Application {
         // attach nodes to viewports
         viewPort.attachScene(root);
         guiViewPort.attachScene(gui);
+	// set up physics
+        bulletAppState = new BulletAppState();
+        bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
+        stateManager.attach(bulletAppState);
     }
     
     @Override
@@ -59,13 +65,21 @@ public abstract class AbstractApp extends Application {
     public void stop() {
         super.stop();
     }
-
-    protected abstract void doStart();
     
-    protected abstract void doInit();
+    public Node getRoot() {
+	return root;
+    }
     
-    protected abstract void doUpdate(float timePerFrame);
-
-    protected abstract void doStop();
+    public Node getGui() {
+	return gui;
+    }
+    
+    public Configuration getConfiguration() {
+	return configuration;
+    }
+    
+    public PhysicsSpace getPhysicsSpace() {
+        return bulletAppState.getPhysicsSpace();
+    }
     
 }

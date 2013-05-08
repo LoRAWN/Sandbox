@@ -3,6 +3,7 @@ package entity.player;
 import application.client.Gui;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import entity.Entity;
@@ -21,27 +22,24 @@ public abstract class AbstractPlayer extends Entity {
     public static final Vector3f DEFAULT_PLAYER_ROTATION = Vector3f.ZERO.clone();
     public static final Vector3f DEFAULT_PLAYER_LOCATION = new Vector3f(0,5*DEFAULT_HEIGHT,0);
     
-    // player camera
     private Camera cam;
-    // player collision control
     private CharacterControl control;
-    // gui
     private Gui gui;
     
     public AbstractPlayer(int identifier, String playerName, Camera camera) {
         super(identifier, playerName, DEFAULT_MODELNAME, DEFAULT_PLAYER_LOCATION.clone(), DEFAULT_PLAYER_ROTATION.clone());
-        //
-        cam = camera;
-        cam.getLocation().set(location);
-        cam.getLocation().addLocal(0, DEFAULT_HEIGHT, 0);
-        cam.getRotation().fromAngles(rotation.getX(), rotation.getY(), rotation.getZ());
-        cam.onFrameChange();
-        //
+	// init control
         control = new CharacterControl(new CapsuleCollisionShape(DEFAULT_RADIUS, DEFAULT_HEIGHT), DEFAULT_STEPHEIGHT);
         control.warp(location);
         control.setJumpSpeed(40.0f);
         control.setFallSpeed(50.0f);
         control.setGravity(100.0f);
+        // init camera
+        cam = camera;
+        cam.getLocation().set(location);
+        cam.getLocation().addLocal(0, DEFAULT_HEIGHT, 0);
+        cam.getRotation().fromAngles(rotation.getX(), rotation.getY(), rotation.getZ());
+        cam.onFrameChange();
     }
     
     protected void updateCam(float pitch, float yaw, float roll) {
@@ -71,10 +69,41 @@ public abstract class AbstractPlayer extends Entity {
         control.jump();
     }
     
+    public void pitch(float amount) {
+        rotation.setX(rotation.getX() + amount);
+        if (rotation.getX() <= -FastMath.HALF_PI) {
+            rotation.setX(FastMath.PI * (-0.499f));
+        }
+        if (rotation.getX() >= FastMath.HALF_PI) {
+            rotation.setX(FastMath.PI * (0.499f));
+        }
+    }
+
+    public void yaw(float amount) {
+        rotation.setY(rotation.getY() + amount);
+        if (rotation.getY() >= FastMath.TWO_PI) {
+            rotation.setY(rotation.getY() - FastMath.TWO_PI);
+        }
+        if (rotation.getY() <= -FastMath.TWO_PI) {
+            rotation.setY(rotation.getY() + FastMath.TWO_PI);
+        }
+    }
+    
+    @Override
     public void update() {
         if (gui != null) {
             gui.update();
         }
+    }
+    
+    @Override
+    public Vector3f getLocation() {
+        return control.getPhysicsLocation();
+    }
+
+    @Override
+    public void setLocation(Vector3f location) {
+       control.warp(location);
     }
     
     public CharacterControl getControl() {
@@ -83,6 +112,10 @@ public abstract class AbstractPlayer extends Entity {
 
     public void setGui(Gui g) {
         gui = g;
+    }
+    
+    public Gui getGui() {
+	return gui;
     }
     
 }

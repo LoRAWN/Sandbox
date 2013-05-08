@@ -2,10 +2,10 @@ package networking;
 
 import networking.messages.AddPlayer;
 import networking.messages.AnimatePlayer;
+import networking.messages.InitPlayer;
 import networking.messages.PlayerInput;
 import networking.messages.RemovePlayer;
 import networking.messages.UpdatePlayer;
-import networking.messages.InitPlayer;
 
 /**
  *

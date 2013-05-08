@@ -4,7 +4,7 @@
  */
 package application.server;
 
-import application.AbstractPhysicsApp;
+import application.AbstractApp;
 import application.Configuration;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Network;
@@ -14,13 +14,13 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import networking.MessageManager;
+import networking.messages.AbstrMsg;
 
 /**
  *
  * @author Laurent
  */
-public abstract class AbstractServerApp extends AbstractPhysicsApp {
+public abstract class AbstractServerApp extends AbstractApp {
     
     private static final Logger logger = Logger.getLogger(AbstractServerApp.class.getName());
     
@@ -44,16 +44,16 @@ public abstract class AbstractServerApp extends AbstractPhysicsApp {
     @Override
     public void initialize() {
         super.initialize();
-        MessageManager.registerMessages();
+        AbstrMsg.registerMessages();
         try {
             // set up network
-            MessageManager.registerMessages();
             server = Network.createServer(port);
             server.addConnectionListener(secretary);
             server.addMessageListener(secretary);
             server.start();
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Server could not be created.", ex);
+	    stop();
         }
         doInit();
     }
@@ -65,15 +65,23 @@ public abstract class AbstractServerApp extends AbstractPhysicsApp {
         doUpdate(tpf);
     }
     
-    protected Collection<HostedConnection> getClients() {
-        return server.getConnections();
-    }
-    
     @Override
     public void stop() {
         server.close();
         doStop();
         super.stop();
     }
+    
+    protected Collection<HostedConnection> getClients() {
+        return server.getConnections();
+    }
+    
+    protected abstract void doStart();
+    
+    protected abstract void doInit();
+    
+    protected abstract void doUpdate(float timePerFrame);
+
+    protected abstract void doStop();
     
 }

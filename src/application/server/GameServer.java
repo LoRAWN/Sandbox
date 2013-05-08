@@ -1,16 +1,15 @@
 package application.server;
 
 import application.Animation;
-import application.Attribute;
+import application.AttributeKey;
 import application.Configuration;
-import entity.player.Player;
 import com.jme3.network.HostedConnection;
-import factories.EnvironmentFactory;
-import factories.PlayerFactory;
+import entity.player.Player;
+import factory.MapFactory;
+import factory.PlayerFactory;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import map.MyMap;
 import networking.messages.AddPlayer;
 import networking.messages.AnimatePlayer;
 import networking.messages.InitPlayer;
@@ -33,24 +32,20 @@ public class GameServer extends AbstractServerApp {
         gs.start();
     }
     
-    private EnvironmentFactory ef;
+    private MapFactory mf;
     private PlayerFactory pf;
+    private String mapPath = "Scenes/sandbox01.j3o";
 
     public GameServer(Configuration c) {
         super(c);
     }
 
     @Override
-    protected void doStart() {
-        // do nothing
-    }
-
-    @Override
     protected void doInit() {
-        // load map environment
-        ef = new EnvironmentFactory(assetManager,getPhysicsSpace());
-        ef.attachMapTo(root, MyMap.class.getName());
-        // load player
+        // load map
+        mf = new MapFactory(assetManager,getPhysicsSpace());
+	root.attachChild(mf.getMap(mapPath));
+        // load player factory
         pf = new PlayerFactory(configuration, inputManager, assetManager, getPhysicsSpace(), cam);
     }
 
@@ -62,35 +57,35 @@ public class GameServer extends AbstractServerApp {
 
     private void processPlayers() {
         for (HostedConnection each : getClients()) {
-            Boolean init = each.getAttribute(Attribute.INIT);
+            Boolean init = each.getAttribute(AttributeKey.INIT);
             if(init==null) {
                 continue;
             }
             if (!init) {
                 //
                 Player p = pf.producePlayer();
-                each.setAttribute(Attribute.PLAYER, p);
-                each.setAttribute(Attribute.ANIMATION, Animation.IDLE);
+                each.setAttribute(AttributeKey.PLAYER, p);
+                each.setAttribute(AttributeKey.ANIMATION, Animation.IDLE);
                 //
                 getPhysicsSpace().add(p.getControl());
                 each.send(new InitPlayer(p.getId()));
                 AddPlayer ap = new AddPlayer(p.getId());
                 for(HostedConnection others : getClients()) {
-                    Player o = others.getAttribute(Attribute.PLAYER);
+                    Player o = others.getAttribute(AttributeKey.PLAYER);
                     each.send(new AddPlayer(o.getId()));
                     others.send(ap);
                 }
-                each.setAttribute(Attribute.INIT, true);
+                each.setAttribute(AttributeKey.INIT, true);
             }
-            boolean connected = each.getAttribute(Attribute.CONNECTED);
+            boolean connected = each.getAttribute(AttributeKey.CONNECTED);
             if (!connected) {
                 continue;
             }
             //
-            Player p = each.getAttribute(Attribute.PLAYER);
-            float pitch = each.getAttribute(Attribute.PITCH);
-            float yaw = each.getAttribute(Attribute.YAW);
-            int keysPressed = each.getAttribute(Attribute.KEYSPRESSED);
+            Player p = each.getAttribute(AttributeKey.PLAYER);
+            float pitch = each.getAttribute(AttributeKey.PITCH);
+            float yaw = each.getAttribute(AttributeKey.YAW);
+            int keysPressed = each.getAttribute(AttributeKey.KEYSPRESSED);
             p.setPitch(pitch);
             p.setYaw(yaw);
             p.setKeysPressed(keysPressed);
@@ -103,17 +98,14 @@ public class GameServer extends AbstractServerApp {
         LinkedList<UpdatePlayer> updates = new LinkedList<UpdatePlayer>();
         LinkedList<AnimatePlayer> anims = new LinkedList<AnimatePlayer>();
         for (HostedConnection each : getClients()) {
-            if (each == null) {
+            if ((each == null) || (!each.attributeNames().contains(AttributeKey.PLAYER))) {
                 continue;
             }
-            if (!each.attributeNames().contains(Attribute.PLAYER)) {
-                continue;
-            }
-            Player p = each.getAttribute(Attribute.PLAYER);
+            Player p = each.getAttribute(AttributeKey.PLAYER);
             updates.add(new UpdatePlayer(p.getId(), p.getRotation(), p.getControl().getPhysicsLocation()));
-            String lastAnim = each.getAttribute(Attribute.ANIMATION);
+            String lastAnim = each.getAttribute(AttributeKey.ANIMATION);
             if(!p.getAnimation().equalsIgnoreCase(lastAnim)) {
-                each.setAttribute(Attribute.ANIMATION, p.getAnimation());
+                each.setAttribute(AttributeKey.ANIMATION, p.getAnimation());
                 anims.add(new AnimatePlayer(p.getId(),p.getAnimation()));
             }
         }
@@ -125,6 +117,11 @@ public class GameServer extends AbstractServerApp {
                 client.send(anim);
             }
         }
+    }
+    
+    @Override
+    protected void doStart() {
+        logger.log(Level.INFO, "Server started.");
     }
 
     @Override

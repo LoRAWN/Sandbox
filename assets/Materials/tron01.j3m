@@ -1,0 +1,9 @@
+Material tron01 : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        DiffuseMap : Textures/tronesque/block-edges.png
+        GlowMap : Textures/tronesque/block-edges.png
+        LightMap : Textures/tronesque/block-edges.png
+     }
+    AdditionalRenderState {
+    }
+}

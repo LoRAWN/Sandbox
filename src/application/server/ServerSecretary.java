@@ -1,6 +1,6 @@
 package application.server;
 
-import application.Attribute;
+import application.AttributeKey;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Message;
@@ -23,23 +23,22 @@ public class ServerSecretary implements ConnectionListener, MessageListener<Host
         try {
             ((AbstrMsg)m).accept(new ServerMessageVisitor(source));
         } catch (ClassCastException e) {
-            logger.log(Level.INFO, "Received a message of invalid type.",e);
-            return;
+            logger.log(Level.INFO, "Received an invalid message.",e);
         }
     }
 
     public void connectionAdded(Server server, HostedConnection conn) {
-        conn.setAttribute(Attribute.CONNECTED, true);
-        conn.setAttribute(Attribute.INIT, false);
-        conn.setAttribute(Attribute.NAME,conn.getAddress());
-        conn.setAttribute(Attribute.PITCH, 0f);
-        conn.setAttribute(Attribute.YAW, 0f);
-        conn.setAttribute(Attribute.KEYSPRESSED,0);
+        conn.setAttribute(AttributeKey.CONNECTED, true);
+        conn.setAttribute(AttributeKey.INIT, false);
+        conn.setAttribute(AttributeKey.NAME,conn.getAddress());
+        conn.setAttribute(AttributeKey.PITCH, 0f);
+        conn.setAttribute(AttributeKey.YAW, 0f);
+        conn.setAttribute(AttributeKey.KEYSPRESSED,0);
         logger.log(Level.INFO, "New Player: {0}", conn.getAddress());
     }
 
     public void connectionRemoved(Server server, HostedConnection conn) {
-        conn.setAttribute(Attribute.CONNECTED, false);
+        conn.setAttribute(AttributeKey.CONNECTED, false);
         logger.log(Level.INFO, "Remove Player: {0}", conn.getAddress());
     }
     

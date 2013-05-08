@@ -1,6 +1,6 @@
 package application.client;
 
-import application.AbstractPhysicsApp;
+import application.AbstractApp;
 import application.Configuration;
 import com.jme3.network.Client;
 import com.jme3.network.Network;
@@ -9,14 +9,13 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import networking.MessageManager;
 import networking.messages.AbstrMsg;
 
 /**
  *
  * @author Laurent
  */
-public abstract class AbstractClientApp extends AbstractPhysicsApp {
+public abstract class AbstractClientApp extends AbstractApp {
     
     private static final Logger logger = Logger.getLogger(AbstractClientApp.class.getName());
     
@@ -43,7 +42,7 @@ public abstract class AbstractClientApp extends AbstractPhysicsApp {
     @Override
     public void initialize() {
         super.initialize();
-        MessageManager.registerMessages();
+        AbstrMsg.registerMessages();
         secretary = new ClientSecretary(this);
         try {
             client = Network.connectToServer(hostName, hostPort);
@@ -52,7 +51,7 @@ public abstract class AbstractClientApp extends AbstractPhysicsApp {
             client.start();
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Client could not be created.", e);
-            //throw new RuntimeException(e);
+            stop();
         }
         doInit();
     }
@@ -100,5 +99,13 @@ public abstract class AbstractClientApp extends AbstractPhysicsApp {
             messages.add(m);
         }
     }
+    
+    protected abstract void doStart();
+    
+    protected abstract void doInit();
+    
+    protected abstract void doUpdate(float timePerFrame);
+
+    protected abstract void doStop();
     
 }
