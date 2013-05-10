@@ -8,6 +8,7 @@ import com.jme3.animation.LoopMode;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -17,6 +18,7 @@ import factory.EntityFactory;
 import factory.MapFactory;
 import factory.PlayerFactory;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +49,7 @@ public class GameClient extends AbstractClientApp implements Visitor {
     
     private Player player;
     private Map<Integer,Node> players;
+    private Spatial map;
 
     public GameClient(Configuration conf) {
         super(conf);
@@ -67,8 +70,11 @@ public class GameClient extends AbstractClientApp implements Visitor {
         setPauseOnLostFocus(false);
         // load map
         mf = new MapFactory(assetManager,getPhysicsSpace());
-	Spatial map = mf.getMap(mapPath);
+	map = mf.getMap(mapPath);
         root.attachChild(map);
+	LinkedList<Camera> cameras = new LinkedList<Camera>();
+	cameras.add(cam);
+	root.attachChild(mf.getProcedularMap(cameras));
         // load player
         pf = new PlayerFactory(configuration, inputManager, assetManager, getPhysicsSpace(), cam);
         player = pf.producePlayer(gui);
@@ -147,6 +153,11 @@ public class GameClient extends AbstractClientApp implements Visitor {
 
     public void visit(InitPlayer m) {
         player.setId(m.getId());
+	Spatial oldMap = map;
+	root.detachChild(oldMap);
+	root.attachChild(mf.getMap(m.getMap()));
+	getPhysicsSpace().removeAll(oldMap);
+	getPhysicsSpace().clearForces();
     }
 
     public void visit(AnimatePlayer m) {

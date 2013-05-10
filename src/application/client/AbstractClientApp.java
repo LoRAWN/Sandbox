@@ -51,7 +51,7 @@ public abstract class AbstractClientApp extends AbstractApp {
             client.start();
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Client could not be created.", e);
-            stop();
+            //stop();
         }
         doInit();
     }

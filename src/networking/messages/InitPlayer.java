@@ -15,17 +15,23 @@ import networking.Visitor;
 public class InitPlayer extends AbstrMsg {
     
     private int id;
+    private String map = "";
     
     public InitPlayer() {
         id = 0;
     }
     
-    public InitPlayer(int identifier) {
+    public InitPlayer(int identifier, String mapPath) {
         id = identifier;
+	map = mapPath;
     }
     
     public int getId() {
         return id;
+    }
+    
+    public String getMap() {
+	return map;
     }
 
     @Override

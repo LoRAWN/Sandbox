@@ -118,4 +118,8 @@ public abstract class AbstractPlayer extends Entity {
 	return gui;
     }
     
+    public Camera getCamera() {
+	return cam;
+    }
+    
 }

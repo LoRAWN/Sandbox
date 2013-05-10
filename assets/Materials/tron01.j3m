@@ -1,8 +1,20 @@
-Material tron01 : Common/MatDefs/Light/Lighting.j3md {
+Material tron01 : Common/MatDefs/Terrain/TerrainLighting.j3md {
      MaterialParameters {
-        DiffuseMap : Textures/tronesque/block-edges.png
-        GlowMap : Textures/tronesque/block-edges.png
-        LightMap : Textures/tronesque/block-edges.png
+        DiffuseMap_0_scale : 0.125
+        DiffuseMap_1_scale : 0.125
+        DiffuseMap_2_scale : 0.125
+        DiffuseMap_5_scale : 0.125
+        DiffuseMap_11_scale : 0.125
+        DiffuseMap_6_scale : 0.125
+        DiffuseMap_10_scale : 0.125
+        DiffuseMap_3_scale : 0.125
+        DiffuseMap_9_scale : 0.125
+        DiffuseMap_8_scale : 0.125
+        DiffuseMap_7_scale : 0.125
+        DiffuseMap_4_scale : 0.125
+        useTriPlanarMapping : false
+        isTerrainGrid : true
+        DiffuseMap : Repeat Textures/tronesque/block-edges256.png
      }
     AdditionalRenderState {
     }

@@ -4,6 +4,14 @@ import application.Animation;
 import application.AttributeKey;
 import application.Configuration;
 import com.jme3.network.HostedConnection;
+import com.jme3.renderer.Camera;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.terrain.Terrain;
+import com.jme3.terrain.geomipmap.TerrainGrid;
+import com.jme3.terrain.geomipmap.TerrainGridLodControl;
+import com.jme3.terrain.geomipmap.TerrainLodControl;
+import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
 import entity.player.Player;
 import factory.MapFactory;
 import factory.PlayerFactory;
@@ -35,6 +43,7 @@ public class GameServer extends AbstractServerApp {
     private MapFactory mf;
     private PlayerFactory pf;
     private String mapPath = "Scenes/sandbox01.j3o";
+    private TerrainGrid terrain;
 
     public GameServer(Configuration c) {
         super(c);
@@ -45,6 +54,13 @@ public class GameServer extends AbstractServerApp {
         // load map
         mf = new MapFactory(assetManager,getPhysicsSpace());
 	root.attachChild(mf.getMap(mapPath));
+	LinkedList<Camera> cameras = new LinkedList<Camera>();
+	for(HostedConnection each : getClients()) {
+	    Player p = each.getAttribute(AttributeKey.PLAYER);
+	    cameras.add(p.getCamera());
+	}
+	terrain = (TerrainGrid)mf.getProcedularMap(cameras);
+	root.attachChild(terrain);
         // load player factory
         pf = new PlayerFactory(configuration, inputManager, assetManager, getPhysicsSpace(), cam);
     }
@@ -68,7 +84,7 @@ public class GameServer extends AbstractServerApp {
                 each.setAttribute(AttributeKey.ANIMATION, Animation.IDLE);
                 //
                 getPhysicsSpace().add(p.getControl());
-                each.send(new InitPlayer(p.getId()));
+                each.send(new InitPlayer(p.getId(), mapPath));
                 AddPlayer ap = new AddPlayer(p.getId());
                 for(HostedConnection others : getClients()) {
                     Player o = others.getAttribute(AttributeKey.PLAYER);
@@ -76,6 +92,12 @@ public class GameServer extends AbstractServerApp {
                     others.send(ap);
                 }
                 each.setAttribute(AttributeKey.INIT, true);
+		// terrain stuff
+		DistanceLodCalculator lodcalc = new DistanceLodCalculator(33, 2.7f);
+		TerrainLodControl control = new TerrainGridLodControl(terrain, p.getCamera());
+		control.setLodCalculator(lodcalc); // patch size, and a multiplier
+		terrain.addControl(control);
+		// --
             }
             boolean connected = each.getAttribute(AttributeKey.CONNECTED);
             if (!connected) {
